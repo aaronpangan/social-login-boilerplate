@@ -24,7 +24,12 @@ function verifyCallback(
   refreshToken: any,
   profile: any,
   done: any,
-) {}
+) {
+  console.log('Success in verify');
+  console.log(profile);
+  done(null, profile);
+}
+
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
