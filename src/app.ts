@@ -4,8 +4,9 @@ import morgan from 'morgan';
 import passport from 'passport';
 import path from 'path';
 import auth from './router/auth.router';
-import { COOKIE_SECRET, GOOGLE_KEYS } from './constants';
+import { COOKIE_SECRET, GITHUB_KEYS, GOOGLE_KEYS } from './constants';
 import passportGoogle from 'passport-google-oauth20';
+import passportGithub from 'passport-github2';
 import cookieSession from 'cookie-session';
 import { isLoggedIn, isNotLoggedIn } from './middleware/checkAuth';
 
@@ -31,6 +32,27 @@ function verifyCallback(
   console.log('Success in verify');
   console.log(profile);
   done(null, profile);
+}
+
+passport.use(
+  new passportGithub.Strategy(
+    {
+      clientID: GITHUB_KEYS.CLIENT_ID,
+      clientSecret: GITHUB_KEYS.CLIENT_SECRET,
+      callbackURL: '/auth/github/callback',
+    },
+    verifyCallback2,
+  ),
+);
+
+function verifyCallback2(
+  accessToken: any,
+  refreshToken: any,
+  profile: any,
+  done: any,
+) {
+  console.log(profile.username);
+  done(null, profile.username);
 }
 
 passport.serializeUser((user: any, done) => {
