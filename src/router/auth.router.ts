@@ -18,11 +18,11 @@ auth.get(
   '/google/callback',
   passport.authenticate('google', {
     failureRedirect: '/failure',
-    session: false,
+    session: true,
   }),
   (req: Request, res: Response) => {
     console.log('Success in callback');
-    res.redirect('/');
+    res.redirect('/dashboard');
   },
 );
 
@@ -32,5 +32,10 @@ auth.get('/failure', (req: Request, res, Response) => {
 });
 
 // Logout
-auth.get('/logout', (req: Request, res: Response) => {});
+auth.get('/logout', (req: Request, res: Response) => {
+  
+  res.clearCookie('session')
+  res.clearCookie('session.sig')
+  return res.redirect('/');
+});
 export default auth;
