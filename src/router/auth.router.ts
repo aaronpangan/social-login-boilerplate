@@ -1,5 +1,4 @@
-import express, { Request, Response } from 'express';
-import { GOOGLE_KEYS } from '../constants';
+import express, { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
 const auth = express.Router();
 
@@ -9,9 +8,6 @@ auth.get(
   passport.authenticate('google', {
     scope: ['email', 'profile'],
   }),
-  () => {
-    console.log('GOOGLE LOGIN');
-  },
 );
 
 auth.get(
@@ -21,7 +17,7 @@ auth.get(
     session: true,
   }),
   (req: Request, res: Response) => {
-    console.log('Success in callback');
+    console.log('final callback GOOGLE');
     res.redirect('/dashboard');
   },
 );
@@ -31,9 +27,6 @@ auth.get(
   passport.authenticate('github', {
     scope: ['user:email'],
   }),
-  () => {
-    console.log('GITHUB LOGIN');
-  },
 );
 auth.get(
   '/github/callback',
@@ -42,7 +35,7 @@ auth.get(
     session: true,
   }),
   (req: Request, res: Response) => {
-    console.log('Success in callback GITHUB');
+    console.log('final callback GITHUB');
     res.redirect('/dashboard');
   },
 );
@@ -53,9 +46,11 @@ auth.get('/failure', (req: Request, res, Response) => {
 });
 
 // Logout
-auth.get('/logout', (req: Request, res: Response) => {
+auth.get('/logout', (req: Request, res: Response, next: NextFunction) => {
   res.clearCookie('session');
   res.clearCookie('session.sig');
+
   return res.redirect('/');
 });
+
 export default auth;
