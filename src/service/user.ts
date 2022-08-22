@@ -9,7 +9,6 @@ function verifyCallback(
 ) {
   console.log('VERIFY CALLBACK');
 
-
   console.log(profile.provider);
   done(null, profile);
 }
