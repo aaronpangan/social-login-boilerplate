@@ -7,21 +7,25 @@ import auth from './router/auth.router';
 import { COOKIE_SECRET } from './constants';
 import cookieSession from 'cookie-session';
 import { isLoggedIn, isNotLoggedIn } from './middleware/checkAuth';
-import { googleStrategy } from './middleware/GoogleStrategy';
-import { githubStrategy } from './middleware/GithubStrategy';
+import { googleStrategy } from './config/GoogleStrategy';
+import { githubStrategy } from './config/GithubStrategy';
+import { User } from './model/User';
 
 const app = express();
 
-passport.serializeUser((user: any, done) => {
-  console.log('Serialize User');
+passport.serializeUser((_id: any, done) => {
+  console.log('Serialize _id');
   // Will create a cookie with the value of user
-  done(null, user);
+  done(null, _id);
 });
 
-passport.deserializeUser((user: any, done) => {
+passport.deserializeUser(async (_id: any, done) => {
   console.log('Deserialize User');
   // Will Extract the Cookie
   // Assigning a value to req.user
+
+  const user = await User.findById(_id);
+
   done(null, user);
 });
 
