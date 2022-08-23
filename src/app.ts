@@ -10,6 +10,7 @@ import { isLoggedIn, isNotLoggedIn } from './middleware/checkAuth';
 import { googleStrategy } from './config/GoogleStrategy';
 import { githubStrategy } from './config/GithubStrategy';
 import { User } from './model/User';
+import { findUserByID } from './service/userService';
 
 const app = express();
 
@@ -24,8 +25,7 @@ passport.deserializeUser(async (_id: any, done) => {
   // Will Extract the Cookie
   // Assigning a value to req.user
 
-  const user = await User.findById(_id);
-
+  const user = await findUserByID(_id);
   done(null, user);
 });
 
@@ -69,7 +69,6 @@ app.get('/', isNotLoggedIn, (req: Request, res) => {
 
 app.get('/dashboard', isLoggedIn, (req, res) => {
   console.log('dashboard');
-
   res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
 });
 export default app;
