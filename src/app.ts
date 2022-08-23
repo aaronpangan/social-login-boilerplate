@@ -1,34 +1,33 @@
-import express from 'express';
+import express, { Request } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import passport from 'passport';
 import path from 'path';
 import auth from './router/auth.router';
-import { GOOGLE_KEYS } from './constants';
-import passportGoogle from 'passport-google-oauth20';
+import { COOKIE_SECRET } from './constants';
+import cookieSession from 'cookie-session';
+import { isLoggedIn, isNotLoggedIn } from './middleware/checkAuth';
+import { googleStrategy } from './config/GoogleStrategy';
+import { githubStrategy } from './config/GithubStrategy';
+import { User } from './model/User';
+import { findUserByID } from './service/userService';
+
 const app = express();
 
-passport.use(
-  new passportGoogle.Strategy(
-    {
-      clientID: GOOGLE_KEYS.CLIENT_ID,
-      clientSecret: GOOGLE_KEYS.CLIENT_SECRET,
-      callbackURL: '/auth/google/callback',
-    },
-    verifyCallback,
-  ),
-);
+passport.serializeUser((_id: any, done) => {
+  console.log('Serialize _id');
+  // Will create a cookie with the value of user
+  done(null, _id);
+});
 
-function verifyCallback(
-  accessToken: any,
-  refreshToken: any,
-  profile: any,
-  done: any,
-) {
-  console.log('Success in verify');
-  console.log(profile);
-  done(null, profile);
-}
+passport.deserializeUser(async (_id: any, done) => {
+  console.log('Deserialize User');
+  // Will Extract the Cookie
+  // Assigning a value to req.user
+
+  const user = await findUserByID(_id);
+  done(null, user);
+});
 
 app.use(
   helmet.contentSecurityPolicy({
@@ -44,14 +43,32 @@ app.use(
   }),
 );
 
+app.use(
+  cookieSession({
+    name: 'session',
+    maxAge: 60 * 60 * 60 * 1000,
+    keys: [COOKIE_SECRET.COOKIE_SECRET1, COOKIE_SECRET.COOKIE_SECRET2],
+  }),
+);
+passport.use(googleStrategy());
+passport.use(githubStrategy());
+
 app.use(passport.initialize());
+
+// Allows serialization and deserialization
+app.use(passport.session());
+
 app.use(morgan('combined'));
 app.use(express.json());
 
 app.use('/auth', auth);
 
-app.get('/', (req, res) => {
+app.get('/', isNotLoggedIn, (req: Request, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+app.get('/dashboard', isLoggedIn, (req, res) => {
+  console.log('dashboard');
+  res.sendFile(path.join(__dirname, '..', 'public', 'dashboard.html'));
+});
 export default app;
